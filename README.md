@@ -28,3 +28,30 @@ notas : vetor[...][...]
 media : vetor[...]
 situacao : vetor[...]
 nome : caractere // Bug!
+A Solução Robusta com Registro
+A versão melhorada resolve isso criando um "molde" de dados chamado TipoAluno (um registro):
+
+Snippet de código
+
+// Melhorado (Robusto)
+tipo
+   TipoAluno = registro
+      nome: caractere[50]
+      notas: vetor[1..10] de real
+      media: real
+      situacao: caractere[10]
+   fimregistro
+E então criamos um único vetor que armazena "Alunos":
+
+Snippet de código
+
+var
+   alunos: vetor[1..100] de TipoAluno
+Agora, alunos[5].nome, alunos[5].media e alunos[5].situacao estão permanentemente agrupados. Isso corrige o bug do nome e garante que os dados de um aluno nunca possam ser misturados com os de outro.
+
+🚀 Como Executar
+Ambiente: Utilize um interpretador de Portugol como o VisualG (que suporta tipo e registro).
+
+Download: Copie o código do arquivo Sistema_de_Notas_Melhorado.alg.
+
+Executar: Abra o arquivo no interpretador e inicie a execução (normalmente com F9).
