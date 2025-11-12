@@ -1,46 +1,130 @@
-algoritmo "Sistema de Notas de Alunos"
-variáveis
-    quantidadeAlunos, quantidadeDisciplinas, i, j : inteiro
-    nome : caractere[50]
-    notas : vetor[1..100] de vetor[1..10] de real // Até 100 alunos e até 10 disciplinas
-    media : vetor[1..100] de real
-    situacao : vetor[1..100] de caractere[10] // "Aprovado" ou "Reprovado"
-início
-    escreva("Digite a quantidade de alunos: ")
-    leia(quantidadeAlunos)
+algoritmo "Sistema_de_Notas_Melhorado"
+// Autor: Ricardo Fiorini Cuato (Baseado no código original)
+// Data: 12/11/2025
+// Descrição: Sistema de notas que usa 'registro' para garantir
+//            a integridade dos dados e modularização.
 
-    escreva("Digite a quantidade de disciplinas: ")
-    leia(quantidadeDisciplinas)
+// --- 1. Constantes Globais ---
+// (Facilita a manutenção)
+const
+   MAX_ALUNOS = 100
+   MAX_DISCIPLINAS = 10
+   MEDIA_APROVACAO = 7.0
 
-    // Loop para entrada de notas
-    para i de 1 até quantidadeAlunos faça
-        escreva("Digite o nome do aluno ", i, ": ")
-        leia(nome)
+// --- 2. Estrutura de Dados (A GRANDE MELHORIA) ---
+// Usamos um 'registro' para agrupar todos os dados de 1 aluno
+tipo
+   TipoAluno = registro
+      nome: caractere[50]
+      notas: vetor[1..MAX_DISCIPLINAS] de real
+      media: real
+      situacao: caractere[10]
+   fimregistro
 
-        escreva("Notas do aluno ", nome, ":\n")
-        somaNotas ← 0
-        para j de 1 até quantidadeDisciplinas faça
-            escreva("Digite a nota da disciplina ", j, ": ")
-            leia(notas[i][j])
-            somaNotas ← somaNotas + notas[i][j]
-        fimpara
+var
+   // Agora temos UM VETOR de 'TipoAluno'
+   alunos: vetor[1..MAX_ALUNOS] de TipoAluno
+   quantidadeAlunos, quantidadeDisciplinas: inteiro
 
-        // Calcula a média
-        media[i] ← somaNotas / quantidadeDisciplinas
+// --- 3. Funções de Validação (Robustez) ---
 
-        // Determina a situação do aluno
-        se media[i] >= 7.0 então
-            situacao[i] ← "Aprovado"
-        senão
-            situacao[i] ← "Reprovado"
-        fimse
-    fimpara
+funcao lerInteiroValidado(mensagem: caractere; min, max: inteiro): inteiro
+var
+   valor: inteiro
+inicio
+   repita
+      escreva(mensagem, " (", min, "-", max, "): ")
+      leia(valor)
+      se (valor < min) ou (valor > max) entao
+         escreval("Valor inválido! Tente novamente.")
+      fimse
+   ate (valor >= min) e (valor <= max)
+   retorne valor
+fimfuncao
 
-    // Exibe o relatório
-    escreva("\n=== Relatório de Notas ===\n")
-    para i de 1 até quantidadeAlunos faça
-        escreva("Aluno ", i, ": ", nome, "\n")
-        escreva("Média: ", media[i]:0:2, "\n")
-        escreva("Situação: ", situacao[i], "\n")
-    fimpara
-fimenquanto
+funcao lerNotaValida(numDisciplina: inteiro): real
+var
+   nota: real
+inicio
+   repita
+      escreva("Digite a nota da disciplina ", numDisciplina, ": ")
+      leia(nota)
+      se (nota < 0) ou (nota > 10) entao
+         escreval("Nota inválida! Deve ser entre 0 e 10.")
+      fimse
+   ate (nota >= 0) e (nota <= 10)
+   retorne nota
+fimfuncao
+
+// --- 4. Procedimentos (Modularização) ---
+
+procedimento lerDadosECalcular(qtdAlunos, qtdDisc: inteiro)
+var
+   i, j: inteiro
+   somaNotas: real
+inicio
+   para i de 1 ate qtdAlunos faca
+      limpatela()
+      escreval("--- Dados do Aluno ", i, " de ", qtdAlunos, " ---")
+      
+      // Agora o nome é salvo DENTRO do registro do aluno
+      escreva("Digite o nome do aluno: ")
+      leia(alunos[i].nome)
+      
+      somaNotas := 0
+      escreval("Digite as notas de ", alunos[i].nome, ":")
+      
+      para j de 1 ate qtdDisc faca
+         // As notas são salvas no vetor DENTRO do registro
+         alunos[i].notas[j] := lerNotaValida(j)
+         somaNotas := somaNotas + alunos[i].notas[j]
+      fimpara
+      
+      // Os resultados são salvos DENTRO do registro
+      alunos[i].media := somaNotas / qtdDisc
+      
+      se (alunos[i].media >= MEDIA_APROVACAO) entao
+         alunos[i].situacao := "Aprovado"
+      senao
+         alunos[i].situacao := "Reprovado"
+      fimse
+      
+      escreval("Média de ", alunos[i].nome, " (", alunos[i].situacao, ") salva.")
+      escreval("Pressione [ENTER] para o próximo aluno...")
+      leia() // Pausa
+   fimpara
+fimprocedimento
+
+procedimento exibirRelatorio(qtdAlunos: inteiro)
+var
+   i: inteiro
+inicio
+   limpatela()
+   escreval("=======================================")
+   escreval("=== Relatório Final de Notas ===")
+   escreval("=======================================")
+   para i de 1 ate qtdAlunos faca
+      // Agora podemos ler o nome correto!
+      escreval("Aluno: ", alunos[i].nome)
+      escreval("  Média: ", alunos[i].media:0:2)
+      escreval("  Situação: ", alunos[i].situacao)
+      escreval("---------------------------------")
+   fimpara
+fimprocedimento
+
+// --- 5. Bloco Principal (Limpo) ---
+inicio
+   limpatela()
+   escreval("--- Sistema de Notas de Alunos ---")
+   
+   // Valida as entradas principais
+   quantidadeAlunos := lerInteiroValidado("Digite a quantidade de alunos", 1, MAX_ALUNOS)
+   quantidadeDisciplinas := lerInteiroValidado("Digite a quantidade de disciplinas", 1, MAX_DISCIPLINAS)
+   
+   // Chama os procedimentos que fazem o trabalho
+   lerDadosECalcular(quantidadeAlunos, quantidadeDisciplinas)
+   
+   exibirRelatorio(quantidadeAlunos)
+   
+   escreval("Fim do programa.")
+fimalgoritmo
